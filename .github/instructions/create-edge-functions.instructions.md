@@ -1,0 +1,85 @@
+---
+description: Guidelines for writing Supabase Edge Functions
+alwaysApply: false
+---
+
+# Edge Functions: Writing Supabase Edge Functions
+
+You're a Supabase Edge Functions expert in writing Deno-based TypeScript functions. Generate **high-quality Edge Functions** that adhere to the following best practices:
+
+## General Guidelines
+
+1. **Use Web APIs and Deno core APIs** instead of external dependencies where possible (e.g. `fetch`, `URL`, `crypto`) to reduce bundle size and cold-start time.
+
+2. **Don't use bare specifier imports** (e.g. `import { foo } from "foo"`). Always use:
+   - `npm:` specifiers for npm packages, e.g. `import { createClient } from "npm:@supabase/supabase-js@2"`.
+   - `jsr:` specifiers for JSR packages, e.g. `import { z } from "jsr:@zod/zod"`.
+   - Full `https://` URLs only for dependencies not available via `npm:` or `jsr:`.
+   - Pin versions explicitly (`@2`, `@2.1.0`) rather than leaving them unpinned, so behavior doesn't shift unexpectedly on redeploy.
+
+3. **Prefer `Deno.serve`** (the built-in) over importing a separate `http/server.ts` module.
+
+4. **Reuse a single Supabase client instance** per function invocation created from environment variables — never hardcode keys:
+   ```ts
+   const supabase = createClient(
+     Deno.env.get("SUPABASE_URL")!,
+     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+   );
+   ```
+
+5. **Only use the service role key when necessary** (bypassing RLS for trusted server-side operations). If the function acts on behalf of the calling user, forward their JWT and use the anon key so RLS still applies.
+
+6. **Set `verify_jwt` deliberately.** Public/webhook endpoints (e.g. Stripe, RevenueCat webhooks) should disable JWT verification in `config.toml` and instead verify the request's authenticity another way (e.g. signature header); user-facing endpoints should keep JWT verification on.
+
+7. **Handle CORS explicitly** if the function will be called from a browser/mobile client directly, returning appropriate `Access-Control-Allow-*` headers on both the actual response and the `OPTIONS` preflight.
+
+8. **Return proper HTTP status codes** and a consistent JSON error shape (e.g. `{ error: string }`) rather than always returning 200.
+
+9. **Validate input** before doing any work — parse and validate the request body/query params, and return a 400 early on invalid input rather than letting downstream calls fail unpredictably.
+
+10. **Keep functions small and single-purpose.** One Edge Function per distinct operation/webhook rather than one large router function, unless there's a clear shared-state reason to combine them.
+
+## Example Template
+
+```ts
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "authorization, content-type",
+      },
+    });
+  }
+
+  try {
+    const { name } = await req.json();
+
+    if (!name || typeof name !== "string") {
+      return new Response(JSON.stringify({ error: "`name` is required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    // ... do work with supabase here ...
+
+    return new Response(JSON.stringify({ message: `Hello ${name}` }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: "Internal error" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+});
+```

@@ -1,0 +1,54 @@
+---
+description: Guidelines for writing Supabase Row Level Security (RLS) policies
+alwaysApply: false
+---
+
+# Database: Create RLS policies
+
+You're a Supabase Postgres expert in writing Row Level Security (RLS) policies. Generate policies that adhere to the following best practices:
+
+## General Guidelines
+
+1. **Always enable RLS** on any table exposed via the API, even if it will be publicly readable:
+   ```sql
+   alter table table_name enable row level security;
+   ```
+
+2. **One policy per operation.** Do not combine `select`, `insert`, `update`, `delete` into a single `for all` policy — write separate policies so each operation's logic is explicit and auditable.
+
+3. **Name policies descriptively** in plain language describing the rule, e.g. `"Users can view their own posts"`, not `policy_1`.
+
+4. **Use `auth.uid()`** to scope rows to the authenticated user, never trust client-supplied user IDs.
+
+5. **Prefer `using`** for `select`/`delete`/`update` row visibility, and **`with check`** for `insert`/`update` to validate the data being written.
+
+6. **Wrap `auth.uid()` and other function calls in `select`** in performance-sensitive policies to allow Postgres to cache the result per statement:
+   ```sql
+   using ((select auth.uid()) = user_id)
+   ```
+
+7. **Public tables** (like a `profiles` table meant to be publicly readable) should have a permissive `select` policy (`using (true)`) but restrictive `insert`/`update`/`delete` policies scoped to the owning user.
+
+8. **Avoid recursive policies** — a policy on `table_a` should not query `table_a` itself in a way that re-triggers RLS evaluation recursively.
+
+## Example Template
+
+```sql
+alter table public.posts enable row level security;
+
+create policy "Posts are viewable by everyone"
+on public.posts for select
+using (true);
+
+create policy "Users can insert their own posts"
+on public.posts for insert
+with check ((select auth.uid()) = user_id);
+
+create policy "Users can update their own posts"
+on public.posts for update
+using ((select auth.uid()) = user_id);
+
+create policy "Users can delete their own posts"
+on public.posts for delete
+using ((select auth.uid()) = user_id);
+```
