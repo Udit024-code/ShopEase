@@ -14,7 +14,7 @@ export default function ProtectedLayout() {
 	}
 
 	if (!session) {
-		return <Redirect href="/welcome" />;
+		return <Redirect href="/onboarding" />;
 	}
 
 	return (
