@@ -1,6 +1,8 @@
+import { useEffect } from "react";
+import { router } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import * as z from "zod";
 
 import { SafeAreaView } from "@/components/safe-area-view";
@@ -19,7 +21,7 @@ const formSchema = z.object({
 });
 
 export default function SignIn() {
-	const { signIn } = useAuth();
+	const { signIn, session } = useAuth();
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -29,13 +31,26 @@ export default function SignIn() {
 		},
 	});
 
+	// Navigate to protected area once session is confirmed
+	const isLoggedIn = session !== null;
+
+	useEffect(() => {
+		if (isLoggedIn) {
+			router.replace("/(protected)/(tabs)");
+		}
+	}, [isLoggedIn]);
+
 	async function onSubmit(data: z.infer<typeof formSchema>) {
 		try {
 			await signIn(data.email, data.password);
-
 			form.reset();
-		} catch (error: Error | any) {
+			// Navigation happens via useEffect when session state updates
+		} catch (error: any) {
 			console.error(error.message);
+			Alert.alert(
+				"Sign In Failed",
+				error.message || "An unexpected error occurred.",
+			);
 		}
 	}
 

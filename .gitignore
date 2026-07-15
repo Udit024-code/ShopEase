@@ -11,6 +11,11 @@ npm-debug.*
 web-build/
 
 .env
+.env.local
+
+# Local MCP configs — these hold access tokens, keep them out of git
+.vscode/mcp.json
+.mcp.local.json
 
 ios/
 

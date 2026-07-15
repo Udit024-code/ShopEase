@@ -1,6 +1,7 @@
+import { router } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Alert, View } from "react-native";
 import * as z from "zod";
 
 import { SafeAreaView } from "@/components/safe-area-view";
@@ -54,8 +55,13 @@ export default function SignUp() {
 			await signUp(data.email, data.password);
 
 			form.reset();
-		} catch (error: Error | any) {
+			router.back();
+		} catch (error: any) {
 			console.error(error.message);
+			Alert.alert(
+				"Sign Up Failed",
+				error.message || "An unexpected error occurred.",
+			);
 		}
 	}
 

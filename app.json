@@ -10,7 +10,7 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "config": {
@@ -33,8 +33,10 @@
       "bundleIdentifier": "com.f20240618.ShopEase"
     },
     "android": {
+      "package": "com.f20240618.shopease",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#059669"
       },
       "splash": {
         "image": "./assets/splash.png",
@@ -52,7 +54,17 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset",
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ShopEase uses your photos to let you set a profile avatar.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "extra": {
       "router": {},
