@@ -86,11 +86,18 @@ export function AuthProvider({ children }: PropsWithChildren) {
 	useEffect(() => {
 		let mounted = true;
 
-		supabase.auth.getSession().then(({ data: { session } }) => {
-			if (mounted) {
-				setSession(session);
-			}
-		});
+		// Restore any persisted session BEFORE marking initialized, so the router
+		// doesn't briefly see a null session and bounce a signed-in user to
+		// onboarding on cold start.
+		supabase.auth
+			.getSession()
+			.then(({ data: { session } }) => {
+				if (mounted) setSession(session);
+			})
+			.catch(() => {})
+			.finally(() => {
+				if (mounted) setInitialized(true);
+			});
 
 		const { data: authListener } = supabase.auth.onAuthStateChange(
 			(_event, session) => {
@@ -99,9 +106,6 @@ export function AuthProvider({ children }: PropsWithChildren) {
 				}
 			},
 		);
-
-		// Mark as initialized regardless of getSession result
-		setInitialized(true);
 
 		return () => {
 			mounted = false;
