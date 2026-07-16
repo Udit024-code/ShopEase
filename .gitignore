@@ -21,6 +21,12 @@ ios/
 
 .cursorrules
 
+# Build/Metro debug logs (dumped at the project root during troubleshooting)
+/*.log
+/build_*.txt
+/metro_*.txt
+/prebuild_*.txt
+
 # macOS
 .DS_Store
 # @generated expo-cli sync-2b81b286409207a5da26e14c78851eb30d8ccbdb
