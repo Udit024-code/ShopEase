@@ -10,6 +10,7 @@ export type SearchFilters = {
 	onSaleOnly: boolean;
 	inStockOnly: boolean;
 	minRating: number; // 0 = any
+	categoryId: string | null; // null = all categories
 };
 
 export const DEFAULT_FILTERS: SearchFilters = {
@@ -17,6 +18,7 @@ export const DEFAULT_FILTERS: SearchFilters = {
 	onSaleOnly: false,
 	inStockOnly: false,
 	minRating: 0,
+	categoryId: null,
 };
 
 export function activeFilterCount(f: SearchFilters): number {
@@ -24,7 +26,8 @@ export function activeFilterCount(f: SearchFilters): number {
 		(f.sort !== "newest" ? 1 : 0) +
 		(f.onSaleOnly ? 1 : 0) +
 		(f.inStockOnly ? 1 : 0) +
-		(f.minRating > 0 ? 1 : 0)
+		(f.minRating > 0 ? 1 : 0) +
+		(f.categoryId ? 1 : 0)
 	);
 }
 
@@ -47,6 +50,22 @@ export function useSearchProducts(query: string, filters: SearchFilters) {
 				.select(PRODUCT_COLUMNS)
 				.eq("is_active", true)
 				.or(`name.ilike.%${term}%,brand.ilike.%${term}%`);
+
+			if (filters.categoryId) {
+				// Match the selected category plus its direct subcategories so a
+				// top-level category (e.g. Fashion) includes its children's items.
+				const { data: children, error: childrenError } = await supabase
+					.from("categories")
+					.select("id")
+					.eq("parent_id", filters.categoryId);
+				if (childrenError) throw childrenError;
+
+				const categoryIds = [
+					filters.categoryId,
+					...children.map((c) => c.id),
+				];
+				q = q.in("category_id", categoryIds);
+			}
 
 			if (filters.onSaleOnly) q = q.not("discount_price", "is", null);
 			if (filters.inStockOnly) q = q.gt("stock", 0);

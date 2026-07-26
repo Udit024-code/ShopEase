@@ -5,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
+import { useTopLevelCategories } from "@/hooks/useCategories";
 import {
 	DEFAULT_FILTERS,
 	type SearchFilters,
@@ -65,6 +66,7 @@ export function FilterSheet({
 }: FilterSheetProps) {
 	const insets = useSafeAreaInsets();
 	const [draft, setDraft] = useState<SearchFilters>(filters);
+	const { data: categories } = useTopLevelCategories();
 
 	// Re-sync the draft whenever the sheet is opened with the committed filters.
 	useEffect(() => {
@@ -105,6 +107,31 @@ export function FilterSheet({
 							))}
 						</View>
 					</View>
+
+					{!!categories && categories.length > 0 && (
+						<View className="gap-2">
+							<Text className="text-sm font-semibold">Category</Text>
+							<View className="flex-row flex-wrap gap-2">
+								<SelectableChip
+									label="All"
+									selected={draft.categoryId === null}
+									onPress={() =>
+										setDraft((d) => ({ ...d, categoryId: null }))
+									}
+								/>
+								{categories.map((cat) => (
+									<SelectableChip
+										key={cat.id}
+										label={cat.name}
+										selected={draft.categoryId === cat.id}
+										onPress={() =>
+											setDraft((d) => ({ ...d, categoryId: cat.id }))
+										}
+									/>
+								))}
+							</View>
+						</View>
+					)}
 
 					<View className="gap-2">
 						<Text className="text-sm font-semibold">Minimum rating</Text>
