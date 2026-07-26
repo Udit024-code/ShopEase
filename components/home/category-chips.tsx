@@ -1,4 +1,5 @@
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 import { Text } from "@/components/ui/text";
@@ -62,10 +63,10 @@ export function CategoryChips() {
 					key={category.id}
 					className="flex-1 items-center gap-1.5"
 					onPress={() =>
-						Alert.alert(
-							category.name,
-							"Category browsing is coming in a future update.",
-						)
+						router.push({
+							pathname: "/category/[id]",
+							params: { id: category.id },
+						})
 					}
 				>
 					<View className="w-14 h-14 rounded-full bg-muted items-center justify-center">

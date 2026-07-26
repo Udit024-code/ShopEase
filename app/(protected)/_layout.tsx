@@ -25,6 +25,8 @@ export default function ProtectedLayout() {
 		>
 			<Stack.Screen name="(tabs)" />
 			<Stack.Screen name="modal" options={{ presentation: "modal" }} />
+			<Stack.Screen name="category/[id]" />
+			<Stack.Screen name="product/[id]" />
 		</Stack>
 	);
 }

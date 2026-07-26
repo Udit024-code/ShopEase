@@ -1,4 +1,5 @@
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 import { Image } from "@/components/image";
@@ -27,10 +28,10 @@ export function ProductCard({
 		<Pressable
 			className={`${widthClassName} gap-2`}
 			onPress={() =>
-				Alert.alert(
-					product.name,
-					"Product details are coming in a future update.",
-				)
+				router.push({
+					pathname: "/product/[id]",
+					params: { id: product.id },
+				})
 			}
 		>
 			<View className="w-full aspect-square rounded-lg bg-muted overflow-hidden">
