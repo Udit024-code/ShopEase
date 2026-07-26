@@ -25,11 +25,23 @@ export function useProductsByCategory(categoryId: string | undefined) {
 		queryKey: ["products", "by-category", categoryId],
 		enabled: !!categoryId,
 		queryFn: async (): Promise<Product[]> => {
+			// Include products in this category plus any of its direct
+			// subcategories, so a parent category (e.g. Fashion) surfaces the
+			// items assigned to its children (Men's/Women's Clothing).
+			const { data: children, error: childrenError } = await supabase
+				.from("categories")
+				.select("id")
+				.eq("parent_id", categoryId!);
+
+			if (childrenError) throw childrenError;
+
+			const categoryIds = [categoryId!, ...children.map((c) => c.id)];
+
 			const { data, error } = await supabase
 				.from("products")
 				.select(PRODUCT_COLUMNS)
 				.eq("is_active", true)
-				.eq("category_id", categoryId!)
+				.in("category_id", categoryIds)
 				.order("created_at", { ascending: false });
 
 			if (error) throw error;

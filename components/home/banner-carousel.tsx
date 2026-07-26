@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-	Alert,
 	Dimensions,
 	NativeScrollEvent,
 	NativeSyntheticEvent,
@@ -8,6 +7,7 @@ import {
 	ScrollView,
 	View,
 } from "react-native";
+import { router } from "expo-router";
 
 import { Image } from "@/components/image";
 import { useActiveBanners } from "@/hooks/useBanners";
@@ -50,13 +50,27 @@ export function BannerCarousel() {
 		setActiveIndex(index);
 	}
 
-	// TODO: wire real navigation once product/category screens exist —
-	// banner.link already stores the intended destination path.
-	function handlePress(title: string | null) {
-		Alert.alert(
-			title ?? "Promotion",
-			"This will link to the relevant category or product once that screen is built.",
-		);
+	// banner.link stores a path like "/category/<uuid>" or "/product/<uuid>".
+	// Route those to their typed screens; ignore unknown or empty links.
+	function handlePress(link: string | null) {
+		if (!link) return;
+
+		const categoryMatch = link.match(/^\/category\/([^/?#]+)/);
+		if (categoryMatch) {
+			router.push({
+				pathname: "/category/[id]",
+				params: { id: categoryMatch[1] },
+			});
+			return;
+		}
+
+		const productMatch = link.match(/^\/product\/([^/?#]+)/);
+		if (productMatch) {
+			router.push({
+				pathname: "/product/[id]",
+				params: { id: productMatch[1] },
+			});
+		}
 	}
 
 	if (isLoading) return <BannerCarouselSkeleton />;
@@ -73,7 +87,10 @@ export function BannerCarousel() {
 			>
 				{banners.map((banner) => (
 					<View key={banner.id} style={{ width: SCREEN_WIDTH }} className="px-4">
-						<Pressable onPress={() => handlePress(banner.title)}>
+						<Pressable
+							onPress={() => handlePress(banner.link)}
+							disabled={!banner.link}
+						>
 							<Image
 								source={{ uri: banner.image_url }}
 								className="w-full aspect-[2/1] rounded-xl bg-muted"
