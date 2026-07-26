@@ -294,6 +294,18 @@ export default function Settings() {
 				<View className="pt-4 border-t border-border">
 					<Pressable
 						className="flex-row items-center gap-3 py-3"
+						onPress={() => router.push("/orders/index")}
+					>
+						<Feather name="package" size={20} color={mutedForegroundColor} />
+						<Text className="flex-1 text-base">My orders</Text>
+						<Feather
+							name="chevron-right"
+							size={20}
+							color={mutedForegroundColor}
+						/>
+					</Pressable>
+					<Pressable
+						className="flex-row items-center gap-3 py-3"
 						onPress={() => router.push("/address/index")}
 					>
 						<Feather name="map-pin" size={20} color={mutedForegroundColor} />

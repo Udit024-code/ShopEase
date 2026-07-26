@@ -32,6 +32,9 @@ export default function ProtectedLayout() {
 			<Stack.Screen name="address/index" />
 			<Stack.Screen name="address/edit" />
 			<Stack.Screen name="search" />
+			<Stack.Screen name="checkout" />
+			<Stack.Screen name="orders/index" />
+			<Stack.Screen name="orders/[id]" />
 		</Stack>
 	);
 }

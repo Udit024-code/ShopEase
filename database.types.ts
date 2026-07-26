@@ -438,7 +438,11 @@ export type Database = {
 			[_ in never]: never;
 		};
 		Functions: {
-			[_ in never]: never;
+			cancel_order: { Args: { p_order_id: string }; Returns: undefined };
+			place_order: {
+				Args: { p_address_id: string; p_payment_method?: string };
+				Returns: string;
+			};
 		};
 		Enums: {
 			[_ in never]: never;

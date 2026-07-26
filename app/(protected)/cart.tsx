@@ -1,10 +1,4 @@
-import {
-	ActivityIndicator,
-	Alert,
-	FlatList,
-	Pressable,
-	View,
-} from "react-native";
+import { ActivityIndicator, FlatList, Pressable, View } from "react-native";
 import { Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -165,12 +159,7 @@ export default function Cart() {
 						<Button
 							size="default"
 							variant="default"
-							onPress={() =>
-								Alert.alert(
-									"Checkout",
-									"Checkout is coming in a future update.",
-								)
-							}
+							onPress={() => router.push("/checkout")}
 						>
 							<Text>Proceed to Checkout</Text>
 						</Button>
