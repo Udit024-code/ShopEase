@@ -16,7 +16,8 @@ export type Product = Pick<
 
 export type ProductDetail = Database["public"]["Tables"]["products"]["Row"];
 
-const PRODUCT_COLUMNS = "id, name, price, discount_price, brand, rating, images";
+export const PRODUCT_COLUMNS =
+	"id, name, price, discount_price, brand, rating, images";
 const RAIL_LIMIT = 10;
 
 export function useProductsByCategory(categoryId: string | undefined) {

@@ -31,6 +31,7 @@ export default function ProtectedLayout() {
 			<Stack.Screen name="wishlist" />
 			<Stack.Screen name="address/index" />
 			<Stack.Screen name="address/edit" />
+			<Stack.Screen name="search" />
 		</Stack>
 	);
 }
