@@ -16,32 +16,50 @@ export type Database = {
 		Tables: {
 			addresses: {
 				Row: {
+					city: string;
+					country: string;
 					created_at: string;
 					full_name: string;
 					id: string;
 					is_default: boolean;
 					label: string | null;
+					line1: string;
+					line2: string | null;
 					phone: string;
+					postal_code: string;
+					state: string | null;
 					updated_at: string;
 					user_id: string;
 				};
 				Insert: {
+					city: string;
+					country?: string;
 					created_at?: string;
 					full_name: string;
 					id?: string;
 					is_default?: boolean;
 					label?: string | null;
+					line1: string;
+					line2?: string | null;
 					phone: string;
+					postal_code: string;
+					state?: string | null;
 					updated_at?: string;
 					user_id: string;
 				};
 				Update: {
+					city?: string;
+					country?: string;
 					created_at?: string;
 					full_name?: string;
 					id?: string;
 					is_default?: boolean;
 					label?: string | null;
+					line1?: string;
+					line2?: string | null;
 					phone?: string;
+					postal_code?: string;
+					state?: string | null;
 					updated_at?: string;
 					user_id?: string;
 				};

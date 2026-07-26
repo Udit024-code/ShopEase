@@ -29,6 +29,8 @@ export default function ProtectedLayout() {
 			<Stack.Screen name="product/[id]" />
 			<Stack.Screen name="cart" />
 			<Stack.Screen name="wishlist" />
+			<Stack.Screen name="address/index" />
+			<Stack.Screen name="address/edit" />
 		</Stack>
 	);
 }

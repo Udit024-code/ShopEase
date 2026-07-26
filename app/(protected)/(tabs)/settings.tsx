@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { router } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import {
@@ -53,6 +54,10 @@ export default function Settings() {
 		colorScheme === "dark"
 			? colors.dark.primaryForeground
 			: colors.light.primaryForeground;
+	const mutedForegroundColor =
+		colorScheme === "dark"
+			? colors.dark.mutedForeground
+			: colors.light.mutedForeground;
 
 	const [loadingProfile, setLoadingProfile] = useState(true);
 	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -285,6 +290,21 @@ export default function Settings() {
 						<Text>Save Changes</Text>
 					)}
 				</Button>
+
+				<View className="pt-4 border-t border-border">
+					<Pressable
+						className="flex-row items-center gap-3 py-3"
+						onPress={() => router.push("/address/index")}
+					>
+						<Feather name="map-pin" size={20} color={mutedForegroundColor} />
+						<Text className="flex-1 text-base">Addresses</Text>
+						<Feather
+							name="chevron-right"
+							size={20}
+							color={mutedForegroundColor}
+						/>
+					</Pressable>
+				</View>
 
 				<View className="gap-2 pt-4 border-t border-border">
 					<H4 className="text-center">Sign Out</H4>
