@@ -1,4 +1,5 @@
 import { Alert, Pressable, View } from "react-native";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 
@@ -25,15 +26,15 @@ export function HomeHeader() {
 				</Pressable>
 
 				<Pressable
-					onPress={() => comingSoon("Notifications")}
+					onPress={() => router.push("/wishlist")}
 					hitSlop={8}
-					accessibilityLabel="Notifications"
+					accessibilityLabel="Wishlist"
 				>
-					<Feather name="bell" size={24} color="#ffffff" />
+					<Feather name="heart" size={24} color="#ffffff" />
 				</Pressable>
 
 				<Pressable
-					onPress={() => comingSoon("Cart")}
+					onPress={() => router.push("/cart")}
 					hitSlop={8}
 					accessibilityLabel="Cart"
 				>

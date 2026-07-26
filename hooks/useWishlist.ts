@@ -2,6 +2,35 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { supabase } from "@/config/supabase";
 import { useAuth } from "@/context/supabase-provider";
+import type { Product } from "@/hooks/useProducts";
+
+export type WishlistItem = {
+	id: string;
+	product: Product | null;
+};
+
+const WISHLIST_SELECT =
+	"id, product:products(id, name, price, discount_price, brand, rating, images)";
+
+export function useWishlistItems() {
+	const { session } = useAuth();
+	const userId = session?.user.id;
+
+	return useQuery({
+		queryKey: ["wishlist", "list", userId],
+		enabled: !!userId,
+		queryFn: async (): Promise<WishlistItem[]> => {
+			const { data, error } = await supabase
+				.from("wishlist")
+				.select(WISHLIST_SELECT)
+				.eq("user_id", userId!)
+				.order("created_at", { ascending: false });
+
+			if (error) throw error;
+			return (data ?? []) as WishlistItem[];
+		},
+	});
+}
 
 /** Whether a given product is in the current user's wishlist. */
 export function useIsWishlisted(productId: string | undefined) {
