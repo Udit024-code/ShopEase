@@ -62,6 +62,7 @@ export default function Settings() {
 	const [loadingProfile, setLoadingProfile] = useState(true);
 	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 	const [uploadingAvatar, setUploadingAvatar] = useState(false);
+	const [deletingAccount, setDeletingAccount] = useState(false);
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
@@ -187,6 +188,37 @@ export default function Settings() {
 		Alert.alert("Saved", "Your profile has been updated.");
 	}
 
+	async function confirmDeleteAccount() {
+		Alert.alert(
+			"Delete account",
+			"This permanently deletes your account, orders, addresses, cart, and wishlist. This cannot be undone.",
+			[
+				{ text: "Cancel", style: "cancel" },
+				{
+					text: "Delete",
+					style: "destructive",
+					onPress: deleteAccount,
+				},
+			],
+		);
+	}
+
+	async function deleteAccount() {
+		setDeletingAccount(true);
+		try {
+			const { error } = await supabase.functions.invoke("delete-account");
+			if (error) throw error;
+			// The account is gone; clear the local session and return to start.
+			await signOut();
+		} catch (error: any) {
+			setDeletingAccount(false);
+			Alert.alert(
+				"Deletion failed",
+				error.message || "Could not delete your account. Please try again.",
+			);
+		}
+	}
+
 	if (loadingProfile) {
 		return (
 			<SafeAreaView className="flex-1 items-center justify-center bg-background">
@@ -294,7 +326,7 @@ export default function Settings() {
 				<View className="pt-4 border-t border-border">
 					<Pressable
 						className="flex-row items-center gap-3 py-3"
-						onPress={() => router.push("/orders/index")}
+						onPress={() => router.push("/orders")}
 					>
 						<Feather name="package" size={20} color={mutedForegroundColor} />
 						<Text className="flex-1 text-base">My orders</Text>
@@ -306,7 +338,7 @@ export default function Settings() {
 					</Pressable>
 					<Pressable
 						className="flex-row items-center gap-3 py-3"
-						onPress={() => router.push("/address/index")}
+						onPress={() => router.push("/address")}
 					>
 						<Feather name="map-pin" size={20} color={mutedForegroundColor} />
 						<Text className="flex-1 text-base">Addresses</Text>
@@ -327,11 +359,32 @@ export default function Settings() {
 						className="w-full"
 						size="default"
 						variant="secondary"
+						disabled={deletingAccount}
 						onPress={async () => {
 							await signOut();
 						}}
 					>
 						<Text>Sign Out</Text>
+					</Button>
+				</View>
+
+				<View className="gap-2 pt-4 border-t border-border">
+					<H4 className="text-center">Delete Account</H4>
+					<Muted className="text-center">
+						Permanently delete your account and all associated data.
+					</Muted>
+					<Button
+						className="w-full"
+						size="default"
+						variant="destructive"
+						disabled={deletingAccount}
+						onPress={confirmDeleteAccount}
+					>
+						{deletingAccount ? (
+							<ActivityIndicator size="small" color="#fff" />
+						) : (
+							<Text>Delete Account</Text>
+						)}
 					</Button>
 				</View>
 			</ScrollView>

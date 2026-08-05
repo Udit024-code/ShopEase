@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { router } from "expo-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import * as z from "zod";
 
 import { SafeAreaView } from "@/components/safe-area-view";
@@ -91,6 +91,13 @@ export default function SignIn() {
 						/>
 					</View>
 				</Form>
+				<Pressable
+					className="self-start"
+					hitSlop={8}
+					onPress={() => router.push("/forgot-password")}
+				>
+					<Text className="text-sm text-brand">Forgot password?</Text>
+				</Pressable>
 			</View>
 			<Button
 				size="default"
