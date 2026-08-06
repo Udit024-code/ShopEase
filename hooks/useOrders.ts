@@ -32,6 +32,8 @@ export type OrderDetail = {
 		id: string;
 		quantity: number;
 		price: number;
+		product_id: string;
+		variant_id: string | null;
 		product: {
 			name: string;
 			brand: string | null;
@@ -78,7 +80,7 @@ export function useOrder(orderId: string | undefined) {
 			const { data, error } = await supabase
 				.from("orders")
 				.select(
-					"id, status, total_amount, payment_method, created_at, address:addresses(full_name, phone, line1, line2, city, state, postal_code, country), items:order_items(id, quantity, price, product:products(name, brand, images), variant:product_variants(size, color))",
+					"id, status, total_amount, payment_method, created_at, address:addresses(full_name, phone, line1, line2, city, state, postal_code, country), items:order_items(id, quantity, price, product_id, variant_id, product:products(name, brand, images), variant:product_variants(size, color))",
 				)
 				.eq("id", orderId!)
 				.single();
@@ -112,6 +114,63 @@ export function usePlaceOrder() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["cart"] });
 			queryClient.invalidateQueries({ queryKey: ["orders"] });
+		},
+	});
+}
+
+export function useReorder() {
+	const queryClient = useQueryClient();
+	const { session } = useAuth();
+	const userId = session?.user.id;
+
+	return useMutation({
+		mutationFn: async (orderId: string) => {
+			if (!userId) throw new Error("Not signed in");
+
+			const { data: items, error } = await supabase
+				.from("order_items")
+				.select("product_id, variant_id, quantity")
+				.eq("order_id", orderId);
+			if (error) throw error;
+
+			// Merge each order line into the cart, bumping quantity on an
+			// existing product+variant line rather than duplicating it.
+			for (const item of items ?? []) {
+				let existingQuery = supabase
+					.from("cart_items")
+					.select("id, quantity")
+					.eq("user_id", userId)
+					.eq("product_id", item.product_id);
+
+				existingQuery = item.variant_id
+					? existingQuery.eq("variant_id", item.variant_id)
+					: existingQuery.is("variant_id", null);
+
+				const { data: existing, error: findError } =
+					await existingQuery.maybeSingle();
+				if (findError) throw findError;
+
+				if (existing) {
+					const { error: updateError } = await supabase
+						.from("cart_items")
+						.update({ quantity: existing.quantity + item.quantity })
+						.eq("id", existing.id);
+					if (updateError) throw updateError;
+				} else {
+					const { error: insertError } = await supabase
+						.from("cart_items")
+						.insert({
+							user_id: userId,
+							product_id: item.product_id,
+							variant_id: item.variant_id,
+							quantity: item.quantity,
+						});
+					if (insertError) throw insertError;
+				}
+			}
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["cart"] });
 		},
 	});
 }

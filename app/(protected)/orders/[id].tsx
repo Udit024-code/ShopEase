@@ -4,11 +4,12 @@ import {
 	ScrollView,
 	View,
 } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 import { Image } from "@/components/image";
 import { OrderStatusBadge } from "@/components/order-status-badge";
+import { OrderStatusTimeline } from "@/components/order-status-timeline";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { Muted } from "@/components/ui/typography";
@@ -16,6 +17,7 @@ import { formatPrice } from "@/lib/format";
 import {
 	useCancelOrder,
 	useOrder,
+	useReorder,
 	type OrderDetail,
 } from "@/hooks/useOrders";
 
@@ -38,6 +40,7 @@ export default function OrderDetailScreen() {
 	const { id, placed } = useLocalSearchParams<{ id: string; placed?: string }>();
 	const { data: order, isLoading, isError } = useOrder(id);
 	const cancelOrder = useCancelOrder();
+	const reorder = useReorder();
 
 	if (isLoading) {
 		return (
@@ -73,6 +76,14 @@ export default function OrderDetailScreen() {
 		]);
 	}
 
+	function handleReorder() {
+		reorder.mutate(id!, {
+			onSuccess: () => router.push("/cart"),
+			onError: (e: any) =>
+				Alert.alert("Couldn't reorder", e.message ?? "Try again."),
+		});
+	}
+
 	return (
 		<View className="flex-1 bg-background">
 			<Stack.Screen
@@ -100,6 +111,14 @@ export default function OrderDetailScreen() {
 						<OrderStatusBadge status={order.status} />
 					</View>
 					<Muted className="text-sm">Placed on {formatDate(order.created_at)}</Muted>
+				</View>
+
+				<View className="gap-2">
+					<Text className="text-base font-semibold">Status</Text>
+					<OrderStatusTimeline
+						status={order.status}
+						placedAt={order.created_at}
+					/>
 				</View>
 
 				<View className="gap-3">
@@ -164,6 +183,19 @@ export default function OrderDetailScreen() {
 						<Text className="font-bold">{formatPrice(order.total_amount)}</Text>
 					</View>
 				</View>
+
+				<Button
+					variant="default"
+					size="default"
+					disabled={reorder.isPending}
+					onPress={handleReorder}
+				>
+					{reorder.isPending ? (
+						<ActivityIndicator size="small" />
+					) : (
+						<Text>Reorder</Text>
+					)}
+				</Button>
 
 				{order.status === "pending" && (
 					<Button
