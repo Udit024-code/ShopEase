@@ -325,6 +325,7 @@ export type Database = {
 					name: string;
 					price: number;
 					rating: number;
+					rating_count: number;
 					stock: number;
 					updated_at: string;
 				};
@@ -340,6 +341,7 @@ export type Database = {
 					name: string;
 					price?: number;
 					rating?: number;
+					rating_count?: number;
 					stock?: number;
 					updated_at?: string;
 				};
@@ -355,6 +357,7 @@ export type Database = {
 					name?: string;
 					price?: number;
 					rating?: number;
+					rating_count?: number;
 					stock?: number;
 					updated_at?: string;
 				};
@@ -403,6 +406,48 @@ export type Database = {
 					username?: string | null;
 				};
 				Relationships: [];
+			};
+			reviews: {
+				Row: {
+					comment: string | null;
+					created_at: string;
+					id: string;
+					product_id: string;
+					rating: number;
+					user_id: string;
+				};
+				Insert: {
+					comment?: string | null;
+					created_at?: string;
+					id?: string;
+					product_id: string;
+					rating: number;
+					user_id: string;
+				};
+				Update: {
+					comment?: string | null;
+					created_at?: string;
+					id?: string;
+					product_id?: string;
+					rating?: number;
+					user_id?: string;
+				};
+				Relationships: [
+					{
+						foreignKeyName: "reviews_product_id_fkey";
+						columns: ["product_id"];
+						isOneToOne: false;
+						referencedRelation: "products";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "reviews_user_id_fkey";
+						columns: ["user_id"];
+						isOneToOne: false;
+						referencedRelation: "profiles";
+						referencedColumns: ["id"];
+					},
+				];
 			};
 			wishlist: {
 				Row: {

@@ -20,6 +20,7 @@ import { useProduct } from "@/hooks/useProducts";
 import { useProductVariants } from "@/hooks/useProductVariants";
 import { useIsWishlisted, useToggleWishlist } from "@/hooks/useWishlist";
 import { useAddToCart } from "@/hooks/useCart";
+import { ReviewsSection } from "@/components/product/reviews-section";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -129,6 +130,12 @@ export default function ProductDetail() {
 							</Text>
 							<Feather name="star" size={10} color="#ffffff" />
 						</View>
+						{product.rating_count > 0 && (
+							<Muted className="text-xs">
+								{product.rating_count}{" "}
+								{product.rating_count === 1 ? "review" : "reviews"}
+							</Muted>
+						)}
 						{percentOff > 0 && (
 							<Text className="text-xs font-semibold text-brand">
 								{percentOff}% off
@@ -207,6 +214,8 @@ export default function ProductDetail() {
 							<Muted className="leading-5">{product.description}</Muted>
 						</View>
 					)}
+
+					<ReviewsSection productId={product.id} />
 				</View>
 			</ScrollView>
 
