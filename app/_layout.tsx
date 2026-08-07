@@ -8,10 +8,13 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { AuthProvider } from "@/context/supabase-provider";
 import { useColorScheme } from "@/lib/useColorScheme";
+import { useThemePreference } from "@/hooks/useThemePreference";
 import { colors } from "@/constants/colors";
 
 export default function AppLayout() {
 	const { colorScheme } = useColorScheme();
+	// Restore and apply the user's saved light/dark/system choice at startup.
+	useThemePreference();
 	const [queryClient] = useState(
 		() =>
 			new QueryClient({

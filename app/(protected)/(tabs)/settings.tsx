@@ -5,11 +5,13 @@ import { useForm } from "react-hook-form";
 import {
 	ActivityIndicator,
 	Alert,
+	Linking,
 	Pressable,
 	ScrollView,
 	View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import Constants from "expo-constants";
 import { Feather } from "@expo/vector-icons";
 import * as z from "zod";
 
@@ -17,12 +19,28 @@ import { Image } from "@/components/image";
 import { SafeAreaView } from "@/components/safe-area-view";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormInput, FormTextarea } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import { Text } from "@/components/ui/text";
 import { H1, H4, Muted } from "@/components/ui/typography";
 import { useAuth } from "@/context/supabase-provider";
 import { useColorScheme } from "@/lib/useColorScheme";
+import {
+	useThemePreference,
+	type ThemePreference,
+} from "@/hooks/useThemePreference";
+import { useNotificationPrefs } from "@/hooks/useNotificationPrefs";
 import { colors } from "@/constants/colors";
 import { supabase } from "@/config/supabase";
+
+const PRIVACY_URL =
+	"https://udit024-code.github.io/ShopEase/privacy-policy.html";
+const TERMS_URL = "https://udit024-code.github.io/ShopEase/terms.html";
+
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+	{ value: "light", label: "Light" },
+	{ value: "dark", label: "Dark" },
+	{ value: "system", label: "System" },
+];
 
 const formSchema = z.object({
 	username: z
@@ -63,6 +81,12 @@ export default function Settings() {
 	const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 	const [uploadingAvatar, setUploadingAvatar] = useState(false);
 	const [deletingAccount, setDeletingAccount] = useState(false);
+
+	const { preference: themePreference, setPreference: setThemePreference } =
+		useThemePreference();
+	const { prefs: notificationPrefs, setPref: setNotificationPref } =
+		useNotificationPrefs();
+	const appVersion = Constants.expoConfig?.version ?? "1.0.0";
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
@@ -348,6 +372,91 @@ export default function Settings() {
 							color={mutedForegroundColor}
 						/>
 					</Pressable>
+				</View>
+
+				<View className="gap-2 pt-4 border-t border-border">
+					<Text className="text-base font-semibold">Appearance</Text>
+					<View className="flex-row gap-2">
+						{THEME_OPTIONS.map((opt) => {
+							const selected = themePreference === opt.value;
+							return (
+								<Pressable
+									key={opt.value}
+									onPress={() => setThemePreference(opt.value)}
+									className={
+										selected
+											? "flex-1 items-center rounded-lg border border-brand bg-brand/10 py-2.5"
+											: "flex-1 items-center rounded-lg border border-border py-2.5"
+									}
+								>
+									<Text
+										className={
+											selected ? "text-sm font-medium text-brand" : "text-sm"
+										}
+									>
+										{opt.label}
+									</Text>
+								</Pressable>
+							);
+						})}
+					</View>
+				</View>
+
+				<View className="gap-3 pt-4 border-t border-border">
+					<Text className="text-base font-semibold">Notifications</Text>
+					<View className="flex-row items-center justify-between">
+						<View className="flex-1 pr-3">
+							<Text className="text-base">Order updates</Text>
+							<Muted className="text-xs">Status changes for your orders</Muted>
+						</View>
+						<Switch
+							checked={notificationPrefs.orderUpdates}
+							onCheckedChange={(v) => setNotificationPref("orderUpdates", v)}
+						/>
+					</View>
+					<View className="flex-row items-center justify-between">
+						<View className="flex-1 pr-3">
+							<Text className="text-base">Promotions</Text>
+							<Muted className="text-xs">Deals, discounts, and offers</Muted>
+						</View>
+						<Switch
+							checked={notificationPrefs.promotions}
+							onCheckedChange={(v) => setNotificationPref("promotions", v)}
+						/>
+					</View>
+				</View>
+
+				<View className="gap-1 pt-4 border-t border-border">
+					<Text className="text-base font-semibold">About</Text>
+					<Pressable
+						className="flex-row items-center gap-3 py-3"
+						onPress={() => Linking.openURL(PRIVACY_URL)}
+					>
+						<Feather name="shield" size={20} color={mutedForegroundColor} />
+						<Text className="flex-1 text-base">Privacy Policy</Text>
+						<Feather
+							name="external-link"
+							size={18}
+							color={mutedForegroundColor}
+						/>
+					</Pressable>
+					<Pressable
+						className="flex-row items-center gap-3 py-3"
+						onPress={() => Linking.openURL(TERMS_URL)}
+					>
+						<Feather name="file-text" size={20} color={mutedForegroundColor} />
+						<Text className="flex-1 text-base">Terms of Service</Text>
+						<Feather
+							name="external-link"
+							size={18}
+							color={mutedForegroundColor}
+						/>
+					</Pressable>
+					<View className="flex-row items-center gap-3 py-3">
+						<Feather name="info" size={20} color={mutedForegroundColor} />
+						<Text className="flex-1 text-base">Version</Text>
+						<Muted className="text-sm">{appVersion}</Muted>
+					</View>
 				</View>
 
 				<View className="gap-2 pt-4 border-t border-border">
