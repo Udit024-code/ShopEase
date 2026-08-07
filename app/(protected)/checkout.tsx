@@ -11,12 +11,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Muted } from "@/components/ui/typography";
 import { formatPrice } from "@/lib/format";
 import { cartLinePrice, useCartItems } from "@/hooks/useCart";
 import { useAddresses, type Address } from "@/hooks/useAddresses";
 import { usePlaceOrder } from "@/hooks/useOrders";
+import { useValidateCoupon, type AppliedCoupon } from "@/hooks/useCoupon";
 
 function formatAddress(a: Address) {
 	return [a.line1, a.line2, a.city, a.state, a.postal_code, a.country]
@@ -33,6 +35,11 @@ export default function Checkout() {
 	const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
 		null,
 	);
+	const [couponInput, setCouponInput] = useState("");
+	const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(
+		null,
+	);
+	const validateCoupon = useValidateCoupon();
 
 	// Default the selection to the user's default address (or the first one).
 	useEffect(() => {
@@ -53,13 +60,44 @@ export default function Checkout() {
 	const itemCount =
 		cart?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
+	// Clamp the discount to the current subtotal (it may have changed since the
+	// coupon was applied) and derive the payable total.
+	const discount = appliedCoupon
+		? Math.min(appliedCoupon.discount_amount, subtotal)
+		: 0;
+	const total = Math.max(0, subtotal - discount);
+
+	function handleApplyCoupon() {
+		const code = couponInput.trim();
+		if (!code) return;
+		validateCoupon.mutate(
+			{ code, subtotal },
+			{
+				onSuccess: (coupon) => {
+					setAppliedCoupon(coupon);
+					setCouponInput("");
+				},
+				onError: (e: any) =>
+					Alert.alert("Invalid code", e.message ?? "That coupon can't be used."),
+			},
+		);
+	}
+
+	function handleRemoveCoupon() {
+		setAppliedCoupon(null);
+	}
+
 	function handlePlaceOrder() {
 		if (!selectedAddressId) {
 			Alert.alert("Select an address", "Please choose a delivery address.");
 			return;
 		}
 		placeOrder.mutate(
-			{ addressId: selectedAddressId, paymentMethod: "cod" },
+			{
+				addressId: selectedAddressId,
+				paymentMethod: "cod",
+				couponCode: appliedCoupon?.code ?? null,
+			},
 			{
 				onSuccess: (orderId) => {
 					router.replace({
@@ -161,6 +199,47 @@ export default function Checkout() {
 						</View>
 
 						<View className="gap-3">
+							<Text className="text-base font-semibold">Promo code</Text>
+							{appliedCoupon ? (
+								<View className="rounded-xl border border-brand bg-brand/10 p-4 flex-row items-center justify-between">
+									<View className="flex-row items-center gap-2">
+										<Feather name="tag" size={16} color="#059669" />
+										<Text className="text-sm font-semibold text-brand">
+											{appliedCoupon.code} applied
+										</Text>
+									</View>
+									<Pressable onPress={handleRemoveCoupon} hitSlop={8}>
+										<Text className="text-sm text-muted-foreground">Remove</Text>
+									</Pressable>
+								</View>
+							) : (
+								<View className="flex-row gap-2">
+									<Input
+										className="flex-1"
+										placeholder="Enter code (e.g. SAVE10)"
+										autoCapitalize="characters"
+										autoCorrect={false}
+										value={couponInput}
+										onChangeText={setCouponInput}
+										editable={!validateCoupon.isPending}
+									/>
+									<Button
+										variant="secondary"
+										size="default"
+										disabled={validateCoupon.isPending || !couponInput.trim()}
+										onPress={handleApplyCoupon}
+									>
+										{validateCoupon.isPending ? (
+											<ActivityIndicator size="small" />
+										) : (
+											<Text>Apply</Text>
+										)}
+									</Button>
+								</View>
+							)}
+						</View>
+
+						<View className="gap-3">
 							<Text className="text-base font-semibold">Order summary</Text>
 							<View className="rounded-xl border border-border p-4 gap-2">
 								{cart.map((item) => (
@@ -178,10 +257,24 @@ export default function Checkout() {
 								))}
 								<View className="h-px bg-border my-1" />
 								<View className="flex-row justify-between">
-									<Text className="font-semibold">
-										Total ({itemCount} {itemCount === 1 ? "item" : "items"})
-									</Text>
-									<Text className="font-bold">{formatPrice(subtotal)}</Text>
+									<Muted className="text-sm">
+										Subtotal ({itemCount} {itemCount === 1 ? "item" : "items"})
+									</Muted>
+									<Text className="text-sm">{formatPrice(subtotal)}</Text>
+								</View>
+								{discount > 0 && (
+									<View className="flex-row justify-between">
+										<Muted className="text-sm text-brand">
+											Discount ({appliedCoupon?.code})
+										</Muted>
+										<Text className="text-sm text-brand">
+											−{formatPrice(discount)}
+										</Text>
+									</View>
+								)}
+								<View className="flex-row justify-between pt-1">
+									<Text className="font-semibold">Total</Text>
+									<Text className="font-bold">{formatPrice(total)}</Text>
 								</View>
 							</View>
 						</View>
@@ -200,7 +293,7 @@ export default function Checkout() {
 							{placeOrder.isPending ? (
 								<ActivityIndicator size="small" />
 							) : (
-								<Text>Place Order · {formatPrice(subtotal)}</Text>
+								<Text>Place Order · {formatPrice(total)}</Text>
 							)}
 						</Button>
 					</View>

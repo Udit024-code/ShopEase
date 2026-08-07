@@ -175,6 +175,48 @@ export type Database = {
 					},
 				];
 			};
+			coupons: {
+				Row: {
+					active: boolean;
+					code: string;
+					created_at: string;
+					discount_type: string;
+					id: string;
+					max_uses: number | null;
+					min_order_amount: number;
+					used_count: number;
+					valid_from: string | null;
+					valid_until: string | null;
+					value: number;
+				};
+				Insert: {
+					active?: boolean;
+					code: string;
+					created_at?: string;
+					discount_type: string;
+					id?: string;
+					max_uses?: number | null;
+					min_order_amount?: number;
+					used_count?: number;
+					valid_from?: string | null;
+					valid_until?: string | null;
+					value: number;
+				};
+				Update: {
+					active?: boolean;
+					code?: string;
+					created_at?: string;
+					discount_type?: string;
+					id?: string;
+					max_uses?: number | null;
+					min_order_amount?: number;
+					used_count?: number;
+					valid_from?: string | null;
+					valid_until?: string | null;
+					value?: number;
+				};
+				Relationships: [];
+			};
 			order_items: {
 				Row: {
 					created_at: string;
@@ -230,7 +272,9 @@ export type Database = {
 			orders: {
 				Row: {
 					address_id: string | null;
+					coupon_code: string | null;
 					created_at: string;
+					discount_amount: number;
 					id: string;
 					payment_method: string;
 					status: string;
@@ -240,7 +284,9 @@ export type Database = {
 				};
 				Insert: {
 					address_id?: string | null;
+					coupon_code?: string | null;
 					created_at?: string;
+					discount_amount?: number;
 					id?: string;
 					payment_method?: string;
 					status?: string;
@@ -250,7 +296,9 @@ export type Database = {
 				};
 				Update: {
 					address_id?: string | null;
+					coupon_code?: string | null;
 					created_at?: string;
+					discount_amount?: number;
 					id?: string;
 					payment_method?: string;
 					status?: string;
@@ -485,8 +533,21 @@ export type Database = {
 		Functions: {
 			cancel_order: { Args: { p_order_id: string }; Returns: undefined };
 			place_order: {
-				Args: { p_address_id: string; p_payment_method?: string };
+				Args: {
+					p_address_id: string;
+					p_payment_method?: string;
+					p_coupon_code?: string | null;
+				};
 				Returns: string;
+			};
+			validate_coupon: {
+				Args: { p_code: string; p_subtotal: number };
+				Returns: {
+					code: string;
+					discount_type: string;
+					value: number;
+					discount_amount: number;
+				}[];
 			};
 		};
 		Enums: {

@@ -18,6 +18,8 @@ export type OrderDetail = {
 	total_amount: number;
 	payment_method: string;
 	created_at: string;
+	coupon_code: string | null;
+	discount_amount: number;
 	address: {
 		full_name: string;
 		phone: string;
@@ -80,7 +82,7 @@ export function useOrder(orderId: string | undefined) {
 			const { data, error } = await supabase
 				.from("orders")
 				.select(
-					"id, status, total_amount, payment_method, created_at, address:addresses(full_name, phone, line1, line2, city, state, postal_code, country), items:order_items(id, quantity, price, product_id, variant_id, product:products(name, brand, images), variant:product_variants(size, color))",
+					"id, status, total_amount, payment_method, created_at, coupon_code, discount_amount, address:addresses(full_name, phone, line1, line2, city, state, postal_code, country), items:order_items(id, quantity, price, product_id, variant_id, product:products(name, brand, images), variant:product_variants(size, color))",
 				)
 				.eq("id", orderId!)
 				.single();
@@ -98,15 +100,18 @@ export function usePlaceOrder() {
 		mutationFn: async ({
 			addressId,
 			paymentMethod = "cod",
+			couponCode = null,
 		}: {
 			addressId: string | null;
 			paymentMethod?: string;
+			couponCode?: string | null;
 		}): Promise<string> => {
 			const { data, error } = await supabase.rpc("place_order", {
 				// The RPC accepts a null address, but generated types type the
 				// uuid arg as non-null; cast to keep the nullable runtime behavior.
 				p_address_id: addressId as string,
 				p_payment_method: paymentMethod,
+				p_coupon_code: couponCode,
 			});
 			if (error) throw error;
 			return data as string;

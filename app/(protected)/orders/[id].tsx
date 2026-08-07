@@ -178,6 +178,16 @@ export default function OrderDetailScreen() {
 								: order.payment_method}
 						</Text>
 					</View>
+					{order.discount_amount > 0 && (
+						<View className="flex-row justify-between">
+							<Muted className="text-sm text-brand">
+								Discount{order.coupon_code ? ` (${order.coupon_code})` : ""}
+							</Muted>
+							<Text className="text-sm text-brand">
+								−{formatPrice(order.discount_amount)}
+							</Text>
+						</View>
+					)}
 					<View className="flex-row justify-between">
 						<Text className="font-semibold">Total</Text>
 						<Text className="font-bold">{formatPrice(order.total_amount)}</Text>
