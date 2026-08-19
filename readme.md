@@ -2,7 +2,7 @@
 
 A cross-platform **e-commerce mobile app** (Amazon/Flipkart style) built with **React Native (Expo)** and **Supabase**. Users can browse a product catalog, search and filter, manage a cart and wishlist, save addresses, apply coupons, and place orders — with a security model where **prices and discounts are computed server-side** and **Row-Level Security** guards every table.
 
-> Built as a Practice School project. Backend on Supabase (Postgres + Auth + Storage + Edge Functions); frontend in TypeScript with Expo Router and NativeWind.
+> Backend on Supabase (Postgres + Auth + Storage + Edge Functions); frontend in TypeScript with Expo Router and NativeWind.
 
 ---
 
